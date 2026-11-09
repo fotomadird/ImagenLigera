@@ -1,0 +1,44 @@
+name: Compilar ImagenLigera
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compilar .exe
+        shell: cmd
+        run: compilar_windows.bat nopause
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ImagenLigera-Windows
+          path: dist/ImagenLigera.exe
+
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-latest
+            nombre: AppleSilicon
+          - runner: macos-15-intel
+            nombre: Intel
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compilar .app y .dmg
+        run: bash compilar_mac.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ImagenLigera-mac-${{ matrix.nombre }}
+          path: dist/*.dmg
